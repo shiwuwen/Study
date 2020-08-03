@@ -79,8 +79,8 @@ output = tf.layers.dense(flat, 10, name='pred_y')
 # accuracy = tf.metrics.accuracy(labels=tf.argmax(tf_y,axis=1), predictions=tf.argmax(output, axis=1),)
 
 sess = tf.Session()
-init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
-sess.run(init_op)
+# init_op = tf.group(tf.global_variables_initializer(), tf.local_variables_initializer())
+# sess.run(init_op)
 
 saver = tf.train.Saver()
 
