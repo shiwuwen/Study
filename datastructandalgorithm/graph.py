@@ -2,19 +2,32 @@
 
 '''
 class GraphVertex():
+	'''
+	图的数据结构
+	graphmatrix: 图的邻接矩阵
+	vertex: 图的顶点列表
+	nums: 顶点个数
+	'''
 	def __init__(self, graphmatrix:list, vertex:list, nums:int):
 		self.graphmatrix = graphmatrix
 		self.vertex = vertex
 		self.nums = nums
 
 def dfstraverse(graph:GraphVertex):
+	'''
+	深度优先遍历
+	'''
 	visited = [0 for i in range(graph.nums)]
 
+	#处理非连通图的情况
 	for i in range(graph.nums):
 		if visited[i] == 0:
 			dfs(graph, i, visited)
 
 def dfs(graph:GraphVertex, i:int, visited:list):
+	'''
+	使用递归实现深度优先遍历
+	'''
 	visited[i] = 1
 	print(graph.vertex[i], end=' ')
 
@@ -24,6 +37,10 @@ def dfs(graph:GraphVertex, i:int, visited:list):
 
 import queue
 def bfstraverse(graph:GraphVertex):
+	'''
+	广度优先遍历
+	使用队列实现
+	'''
 	que = queue.Queue()
 	visited = [0 for i in range(graph.nums)]
 
@@ -43,6 +60,11 @@ def bfstraverse(graph:GraphVertex):
 				visited[j] = 1
 import copy
 def dijkstra(graph:GraphVertex, index:int) -> list:
+	'''
+	Dijkstra算法
+	用于计算单源最短路径
+	适用于不含负权边的图
+	'''
 	visited = [0 for i in range(graph.nums)]
 	path = [index for i in range(graph.nums)]
 	
@@ -73,6 +95,10 @@ def dijkstra(graph:GraphVertex, index:int) -> list:
 	return leastcost, path
 
 def getpath(path:list, index:int, i:int):
+	'''
+	显示Dijkstra算法生成的路径
+	'''
+
 	j = path[i]
 	print(i, '--', end=' ')
 	while j != index:
@@ -81,6 +107,10 @@ def getpath(path:list, index:int, i:int):
 	print(index)
 	
 def minispantree_prim(graph):
+	'''
+	最小生成树，prim算法
+	使用贪心算法计算
+	'''
 	visited = [0 for i in range(graph.nums)]
 	path = [0 for i in range(graph.nums)]
 	visited[0] = 1
@@ -135,13 +165,13 @@ if __name__ == '__main__':
 	# bfstraverse(graph)
 	# print()
 
-	# #dijkstra单源最短路径
-	# leastcost, path = dijkstra(graph, 0)
-	# print(graph.graphmatrix[0])
-	# print(leastcost)
-	# print(path)
-	# for i in range(nums):
-	# 	getpath(path, 0, i)
+	#dijkstra单源最短路径
+	leastcost, path = dijkstra(graph, 0)
+	print(graph.graphmatrix[0])
+	print(leastcost)
+	print(path)
+	for i in range(nums):
+		getpath(path, 0, i)
 
 	# #最小生成树 prim算法
 	# path, lowcost = minispantree_prim(graph)
