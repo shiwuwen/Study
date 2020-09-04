@@ -43,7 +43,7 @@ class DDPG(object):
 		td_error = tf.losses.mean_squared_error(labels=q_target, predictions=q)
 		self.ctrain = tf.train.AdamOptimizer(LR_C).minimize(td_error, var_list=self.ce_params)
 
-		a_loss = - tf.reduce_mean(q)
+		a_loss = - tf.reduce_mean(q) #maxmize q
 		self.atrain = tf.train.AdamOptimizer(LR_A).minimize(a_loss, var_list=self.ae_params)
 
 		self.sess.run(tf.global_variables_initializer())
