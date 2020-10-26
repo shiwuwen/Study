@@ -122,7 +122,7 @@ def kernelTrans(X, A, kTup):
 		for j in range(m):
 			deltaRow = X[j,:] - A
 			K[j] = deltaRow * deltaRow.T
-		K = exp(K / (-1 * kTup[1]**2)) 
+		K = np.exp(K / (-1 * kTup[1]**2)) 
 	else:
 		print('kTup error')
 
@@ -145,8 +145,7 @@ class optStruct:
 
 
 def calcEk(oS, k):
-	fXk = float(np.multiply(oS.alphas, oS.labelMat).T*
-			(oS.X*oS.X[k,:].T)) + oS.b
+	fXk = float(np.multiply(oS.alphas, oS.labelMat).T*oS.K[:,k]) + oS.b
 	Ek = fXk - float(oS.labelMat[k])
 
 	return Ek
@@ -201,8 +200,8 @@ def innerL(i, oS):
 		if L==H:
 			print('L==H')
 
-		eta = 2.0*oS.X[i,:]*oS.X[i,:].T - oS.X[i,:]*oS.X[i,:].T\
-				- oS.X[j,:]*oS.X[j,:].T
+		eta = 2.0*oS.K[i,j] - oS.K[i,i] - oS.K[j,j]
+
 		if eta>=0:
 			print('eta>=0')
 			return 0
@@ -221,12 +220,12 @@ def innerL(i, oS):
 		updateEk(oS, i)
 
 		b1 = oS.b - Ei - oS.labelMat[i]*(oS.alphas[i] - alphaIold)*\
-			oS.X[i,:]*oS.X[i,:].T - oS.labelMat[j]*(oS.alphas[j] - alphaJold)*\
-			oS.X[i,:]*oS.X[j,:].T
+			oS.K[i,i] - oS.labelMat[j]*(oS.alphas[j] - alphaJold)*\
+			oS.K[i,j]
 
 		b2 = oS.b - Ej - oS.labelMat[i]*(oS.alphas[i] - alphaIold)*\
-			oS.X[i,:]*oS.X[j,:].T - oS.labelMat[j]*(oS.alphas[j] - alphaJold)*\
-			oS.X[j,:]*oS.X[j,:].T
+			oS.K[i,j] - oS.labelMat[j]*(oS.alphas[j] - alphaJold)*\
+			oS.K[j,j]
 
 		if (oS.alphas[i]>0) and (oS.alphas[i]<oS.C):
 			oS.b = b1
@@ -281,10 +280,44 @@ def calcWs(alphas, dataArr, classLabels):
 	return w
 
 
-def test(w, b, xIn):
-	res = np.mat(xIn) * w + b
+def testRbf(k1=1.3):
+	dataArr, labelArr = loadDataSet('testSetRBF.txt')
+	b, alphas = smoP(dataArr, labelArr, 200, 0.0001, 100, ('rbf', k1))
+	dataMat = np.mat(dataArr)
+	labelMat = np.mat(labelArr).transpose()
 
-	return res
+	svInd = np.nonzero(alphas>0)[0]
+	sVs = dataMat[svInd]
+	labelSV = labelMat[svInd]
+
+	print('there are %d support vectors' %np.shape(sVs)[0])
+
+	m, n = np.shape(dataMat)
+	errorCount = 0
+
+	for i in range(m):
+		kernelEval = kernelTrans(sVs, dataMat[i,:], ('rbf', k1))
+		predict = kernelEval.T * np.multiply(labelSV, alphas[svInd]) + b
+
+		if np.sign(predict) != np.sign(labelArr[i]):
+			errorCount += 1
+	print('训练集错误率:%.2f%%' % ((float(errorCount) / m) * 100))
+
+	dataArr, labelArr = loadDataSet('testSetRBF2.txt')
+	errorCount = 0
+	datMat = np.mat(dataArr)
+	labelMat = np.mat(labelArr).transpose()
+	m, n = np.shape(datMat)
+	for i in range(m):
+		# 计算各个点的核
+		kernelEval = kernelTrans(sVs, datMat[i, :], ('rbf', k1))
+		# 根据支持向量的点计算超平面，返回预测结果
+		predict = kernelEval.T * np.multiply(labelSV, alphas[svInd]) + b
+		# 返回数组中各元素的正负号，用1和-1表示，并统计错误个数
+		if np.sign(predict) != np.sign(labelArr[i]):
+			errorCount += 1
+	# 打印错误率
+	print('训练集错误率:%.2f%%' % ((float(errorCount) / m) * 100)) 
 
 
 
@@ -292,16 +325,4 @@ def test(w, b, xIn):
 
 
 if __name__ == '__main__':
-	dataArr, labelArr = loadDataSet('testSet.txt')
-	print(labelArr)
-
-	# b, alphas = smoSimple(dataArr, labelArr, 0.6, 0.001, 40)
-	b, alphas = smoP(dataArr, labelArr, 0.6, 0.001, 40)
-	print(b)
-	print(alphas[alphas>0])
-
-	w = calcWs(alphas, dataArr, labelArr)
-	print(w)
-	print(type(w))
-	print(test(w, b , dataArr[0]))
-	print(labelArr[0])
+	testRbf()
