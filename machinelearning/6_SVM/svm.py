@@ -4,9 +4,14 @@ import numpy as np
 
 #简化版SMO实现SVM
 def loadDataSet(filename):
+	'''
+	从filename中加载数据
+	'''
+	#数据和标签列表
 	dataMat = []; labelMat = []
 	fr = open(filename)
 	for line in fr.readlines():
+		#以tab为分隔符
 		lineArr = line.strip().split('\t')
 		dataMat.append([float(lineArr[0]), float(lineArr[1])])
 		labelMat.append(float(lineArr[2]))
@@ -15,7 +20,11 @@ def loadDataSet(filename):
 
 
 def selectJrand(i, m):
+	'''
+	随机选择一个与i不同的下标j
+	'''
 	j = i
+	#直到i,j不相等
 	while j==i:
 		j = int(np.random.uniform(0, m))
 
@@ -23,6 +32,9 @@ def selectJrand(i, m):
 
 
 def clipAlpha(aj, H, L):
+	'''
+	将aj的值限制在[L,H]之间
+	'''
 	if aj > H:
 		aj = H
 	elif aj < L:
@@ -31,20 +43,34 @@ def clipAlpha(aj, H, L):
 	return aj
 
 def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
+	'''
+	SMO的简单实现
+	'''
+	#将输入转换成矩阵 m,2
 	dataMatrix = np.mat(dataMatIn)
+	#将标签转换为矩阵并转置 m,1
 	labelMat = np.mat(classLabels).transpose()
+	#偏移b
 	b = 0 
+	#数据集大小
 	m, n = np.shape(dataMatrix) #m,2
+	#初始化权重为0 m,1
 	alphas = np.mat(np.zeros((m,1)))
+	#当前迭代次数
 	iter = 0
 
 	while iter<maxIter:
+		#当前改变的alpha数
 		alphaPairsChanged = 0
+		#遍历每一个样本
 		for i in range(m):
+			#预测当前样本的标签
 			fXi = float(np.multiply(alphas, labelMat).T*
 				(dataMatrix * dataMatrix[i,:].T)) + b 
+			#计算预测与实际值的差
 			Ei = fXi - float(labelMat[i])
 
+			#如果Ei在误差toler之外，则优化alpha
 			if((labelMat[i]*Ei<-toler) and (alphas[i]<C)) or \
 				((labelMat[i]*Ei>toler) and (alphas[i]>0)):
 				j = selectJrand(i, m)
@@ -73,6 +99,7 @@ def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
 					print('eta>=0')
 					continue
 
+				#更新alphaj
 				alphas[j] -= labelMat[j]*(Ei - Ej)/eta
 				alphas[j] = clipAlpha(alphas[j], H, L)
 
@@ -82,11 +109,13 @@ def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
 
 				alphas[i] += labelMat[j]*labelMat[i]*(alphaJold - alphas[j])
 
+				#更新b1
 				b1 = b - Ei - labelMat[i] *(alphas[i]-alphaIold)*\
 					dataMatrix[i,:]*dataMatrix[i,:].T -\
 					labelMat[j]*(alphas[j]-alphaJold)*\
 					dataMatrix[i,:]*dataMatrix[j,:].T
 
+				#更新b2
 				b2 = b - Ej - labelMat[i] *(alphas[i]-alphaIold)*\
 					dataMatrix[i,:]*dataMatrix[j,:].T -\
 					labelMat[j]*(alphas[j]-alphaJold)*\
@@ -113,24 +142,27 @@ def smoSimple(dataMatIn, classLabels, C, toler, maxIter):
 	return b, alphas
 
 
-def kernelTrans(X, A, kTup):
-	m, n = np.shape(X)
-	K = np.mat(np.zeros((m,1)))
-	if kTup[0] == 'lin':
-		K = X * A.T
-	elif kTup[0] == 'rbf':
-		for j in range(m):
-			deltaRow = X[j,:] - A
-			K[j] = deltaRow * deltaRow.T
-		K = exp(K / (-1 * kTup[1]**2)) 
-	else:
-		print('kTup error')
+# def kernelTrans(X, A, kTup):
+# 	'''
+# 	for RBF
+# 	'''
+# 	m, n = np.shape(X)
+# 	K = np.mat(np.zeros((m,1)))
+# 	if kTup[0] == 'lin':
+# 		K = X * A.T
+# 	elif kTup[0] == 'rbf':
+# 		for j in range(m):
+# 			deltaRow = X[j,:] - A
+# 			K[j] = deltaRow * deltaRow.T
+# 		K = exp(K / (-1 * kTup[1]**2)) 
+# 	else:
+# 		print('kTup error')
 
-	return K
+# 	return K
 
-
+#完整SMO算法
 class optStruct:
-	def __init__(self, dataMatIn, classLabels, C, toler, kTup):
+	def __init__(self, dataMatIn, classLabels, C, toler):
 		self.X = dataMatIn
 		self.labelMat = classLabels
 		self.C = C
@@ -139,9 +171,9 @@ class optStruct:
 		self.alphas = np.mat(np.zeros((self.m, 1)))
 		self.b = 0
 		self.eCache = np.mat(np.zeros((self.m, 2)))
-		self.K = np.mat(np.zeros((self.m, self.m)))
-		for i in range(self.m):
-			self.K[:,i] = kernelTrans(self.X, self.X[i, :], kTup)
+		# self.K = np.mat(np.zeros((self.m, self.m)))
+		# for i in range(self.m):
+		# 	self.K[:,i] = kernelTrans(self.X, self.X[i, :], kTup)
 
 
 def calcEk(oS, k):
@@ -242,7 +274,7 @@ def innerL(i, oS):
 
 
 def smoP(dataMatIn, classLabels, C, toler, maxIter, kTup=('lin', 0)):
-	oS = optStruct(np.mat(dataMatIn), np.mat(classLabels).transpose(), C, toler, kTup)
+	oS = optStruct(np.mat(dataMatIn), np.mat(classLabels).transpose(), C, toler)
 	iter = 0
 	entirSet = True
 	alphaPairsChanged = 0
@@ -293,7 +325,7 @@ def test(w, b, xIn):
 
 if __name__ == '__main__':
 	dataArr, labelArr = loadDataSet('testSet.txt')
-	print(labelArr)
+	# print(labelArr)
 
 	# b, alphas = smoSimple(dataArr, labelArr, 0.6, 0.001, 40)
 	b, alphas = smoP(dataArr, labelArr, 0.6, 0.001, 40)
@@ -301,7 +333,7 @@ if __name__ == '__main__':
 	print(alphas[alphas>0])
 
 	w = calcWs(alphas, dataArr, labelArr)
-	print(w)
-	print(type(w))
+	print('w', w)
+	# print(type(w))
 	print(test(w, b , dataArr[0]))
 	print(labelArr[0])

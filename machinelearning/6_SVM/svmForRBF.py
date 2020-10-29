@@ -317,7 +317,7 @@ def testRbf(k1=1.3):
 		if np.sign(predict) != np.sign(labelArr[i]):
 			errorCount += 1
 	# 打印错误率
-	print('训练集错误率:%.2f%%' % ((float(errorCount) / m) * 100)) 
+	print('测试集错误率:%.2f%%' % ((float(errorCount) / m) * 100)) 
 
 
 
