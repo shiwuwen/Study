@@ -11,5 +11,5 @@ It include how to use tensorflow.
     return name  
 ```
 
-  def get_name():  
-    return name  
+    def get_name():  
+      return name  
