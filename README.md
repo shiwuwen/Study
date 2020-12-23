@@ -10,3 +10,6 @@ It include how to use tensorflow.
   def get_name():  
     return name  
 ```
+
+  def get_name():  
+    return name  
