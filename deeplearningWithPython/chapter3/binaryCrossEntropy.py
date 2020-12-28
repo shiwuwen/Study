@@ -7,6 +7,13 @@ import matplotlib.pyplot as plt
 
 import time
 
+'''
+互联网电影数据库（IMDB） 电影评论分类
+训练样本数：25000
+测试样本数：25000
+类别数：2 正面评论，负面评论
+'''
+
 def get_data_set():
 	'''
 	获取IMDB数据集，它包含来自互联网电影数据库（IMDB）的 50 000 条严重两极分
@@ -105,7 +112,7 @@ def draw_training_and_validation_accuracy(acc, val_acc):
 	epochs = range(1, len(acc)+1)
 
 	plt.plot(epochs, acc, 'bo', label='Training accuracy')
-	plt.plot(epochs, val_loss, 'b', label='Validation accuracy')
+	plt.plot(epochs, val_acc, 'b', label='Validation accuracy')
 	plt.title('Training and Validation accuracy')
 	plt.xlabel('Epochs')
 	plt.ylabel('accuracy')
