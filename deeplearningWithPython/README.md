@@ -3,6 +3,8 @@
 这是对《deeplearning with python》相关代码的复现
 
 # keras load_model() 报错
+## 通过将h5py升级为2.10解决
+
 str has no attribute decode
 
 /home/shiwuwen/anaconda3/envs/wsw/lib/python3.6/site-packages/keras/models.py
