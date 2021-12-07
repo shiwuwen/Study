@@ -48,6 +48,7 @@ y_vals = np.transpose([np.array([y[13] for y in housing_data])])
 x_vals = np.array([[x for i,x in enumerate(y) if housing_header[i] in cols_used] for y in housing_data])
 
 ## Min-Max Scaling
+# x_vals.ptp(0): 返回 max - min
 x_vals = (x_vals - x_vals.min(0)) / x_vals.ptp(0)
 
 # Split the data into train and test sets
@@ -71,21 +72,27 @@ y_target_test = tf.placeholder(shape=[None, 1], dtype=tf.float32)
 
 # Declare distance metric
 # L1
+# tf.expand_dims(x_data_test,1)) : [None, 1, num_features]
+# tf.subtract(x_data_train, tf.expand_dims(x_data_test,1)) : [x_data_test[0], x_data_train[0], num_features]
+# tf.reduce_sum( , 2) : [[x_data_test[0], x_data_train[0]]
 distance = tf.reduce_sum(tf.abs(tf.subtract(x_data_train, tf.expand_dims(x_data_test,1))), axis=2)
 
-# L2
-#distance = tf.sqrt(tf.reduce_sum(tf.square(tf.subtract(x_data_train, tf.expand_dims(x_data_test,1))), reduction_indices=1))
+# L2 reduction_indices：axis废弃名称
+# distance = tf.sqrt(tf.reduce_sum(tf.square(tf.subtract(x_data_train, tf.expand_dims(x_data_test,1))), reduction_indices=1))
 
 # Predict: Get min distance index (Nearest neighbor)
 #prediction = tf.arg_min(distance, 0)
-top_k_xvals, top_k_indices = tf.nn.top_k(tf.negative(distance), k=k)
+# tf.nn.top_k: 为了找到输入的张量的最后的一个维度的最大的k个值和它的下标！
+top_k_xvals, top_k_indices = tf.nn.top_k(tf.negative(distance), k=k) # [bs, k]
 top_k_xvals = tf.truediv(1.0, top_k_xvals)
-x_sums = tf.expand_dims(tf.reduce_sum(top_k_xvals, 1),1)
-x_sums_repeated = tf.matmul(x_sums,tf.ones([1, k], tf.float32))
-x_val_weights = tf.expand_dims(tf.div(top_k_xvals,x_sums_repeated), 1)
+x_sums = tf.expand_dims(tf.reduce_sum(top_k_xvals, 1),1) # [bs, 1]
+x_sums_repeated = tf.matmul(x_sums,tf.ones([1, k], tf.float32)) # [bs, k]
+# 计算前k个最近邻的权重
+x_val_weights = tf.expand_dims(tf.div(top_k_xvals,x_sums_repeated), 1) # [bs, 1, k]
 
-top_k_yvals = tf.gather(y_target_train, top_k_indices)
-prediction = tf.squeeze(tf.matmul(x_val_weights,top_k_yvals), axis=[1])
+top_k_yvals = tf.gather(y_target_train, top_k_indices) # [bs, k, 1]
+# tf.squeeze : 删除维度为1的维度
+prediction = tf.squeeze(tf.matmul(x_val_weights,top_k_yvals), axis=[1]) # [bs, 1]
 
 # Calculate MSE
 mse = tf.div(tf.reduce_sum(tf.square(tf.subtract(prediction, y_target_test))), batch_size)
@@ -104,15 +111,16 @@ for i in range(num_loops):
                                          y_target_train: y_vals_train, y_target_test: y_batch})
 
     print('Batch #' + str(i+1) + ' MSE: ' + str(np.round(batch_mse,3)))
+    # print(predictions)
 
 # Plot prediction and actual distribution
-bins = np.linspace(5, 50, 45)
+# bins = np.linspace(5, 50, 45)
 
-plt.hist(predictions, bins, alpha=0.5, label='Prediction')
-plt.hist(y_batch, bins, alpha=0.5, label='Actual')
-plt.title('Histogram of Predicted and Actual Values')
-plt.xlabel('Med Home Value in $1,000s')
-plt.ylabel('Frequency')
-plt.legend(loc='upper right')
-plt.show()
+# plt.hist(predictions, bins, alpha=0.5, label='Prediction')
+# plt.hist(y_batch, bins, alpha=0.5, label='Actual')
+# plt.title('Histogram of Predicted and Actual Values')
+# plt.xlabel('Med Home Value in $1,000s')
+# plt.ylabel('Frequency')
+# plt.legend(loc='upper right')
+# plt.show()
 
