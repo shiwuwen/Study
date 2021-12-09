@@ -24,7 +24,7 @@ ops.reset_default_graph()
 sess = tf.Session()
 
 # Load the data
-mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+mnist = input_data.read_data_sets("mnist/", one_hot=True)
 
 # Random sample
 np.random.seed(13)  # set seed for reproducibility
@@ -49,17 +49,17 @@ y_target_test = tf.placeholder(shape=[None, 10], dtype=tf.float32)
 
 # Declare distance metric
 # L1
-distance = tf.reduce_sum(tf.abs(tf.subtract(x_data_train, tf.expand_dims(x_data_test,1))), axis=2)
+# distance = tf.reduce_sum(tf.abs(tf.subtract(x_data_train, tf.expand_dims(x_data_test,1))), axis=2)
 
 # L2
-#distance = tf.sqrt(tf.reduce_sum(tf.square(tf.subtract(x_data_train, tf.expand_dims(x_data_test,1))), reduction_indices=1))
+distance = tf.sqrt(tf.reduce_sum(tf.square(tf.subtract(x_data_train, tf.expand_dims(x_data_test,1))), reduction_indices=2)) # fix a bug, where reduction_indices should equal to 2
 
 # Predict: Get min distance index (Nearest neighbor)
 top_k_xvals, top_k_indices = tf.nn.top_k(tf.negative(distance), k=k)
 prediction_indices = tf.gather(y_target_train, top_k_indices)
 # Predict the mode category
 count_of_predictions = tf.reduce_sum(prediction_indices, axis=1)
-prediction = tf.argmax(count_of_predictions)
+prediction = tf.argmax(count_of_predictions, axis=1) # fix a bug, where miss axis=1
 
 # Calculate how many loops over training data
 num_loops = int(np.ceil(len(x_vals_test)/batch_size))
@@ -73,6 +73,12 @@ for i in range(num_loops):
     y_batch = y_vals_test[min_index:max_index]
     predictions = sess.run(prediction, feed_dict={x_data_train: x_vals_train, x_data_test: x_batch,
                                          y_target_train: y_vals_train, y_target_test: y_batch})
+    
+    predictions_indices = sess.run(top_k_indices, feed_dict={x_data_train: x_vals_train, x_data_test: x_batch, y_target_train: y_vals_train, y_target_test: y_batch})
+
+    print(predictions_indices)
+    print(np.argmax(y_batch, axis=1))
+    print()
     test_output.extend(predictions)
     actual_vals.extend(np.argmax(y_batch, axis=1))
 
