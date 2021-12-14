@@ -8,6 +8,7 @@ ops.reset_default_graph()
 sess = tf.Session()
 
 # knn test
+# hyper parameter
 k = 4
 batch_size = 8
 train_nums = 1000
@@ -40,13 +41,16 @@ hyper_parameter_k = tf.placeholder(shape=(), dtype=tf.int32)
 # L2 distance
 distance = tf.sqrt(tf.reduce_sum(tf.square(tf.subtract(x_data_train, tf.expand_dims(x_data_test, 1))), axis=2))
 
+# tf.nn.top_k: 返回输入张量最后一维中最大的K的元素的值和下标
 top_k_vals, top_k_indices = tf.nn.top_k(tf.negative(distance), k=hyper_parameter_k)
+# tf.gather: 将 top_k_indices 中的下标值替换为 y_target_train 中对应下标元素
 prediction_1 = tf.gather(y_target_train, top_k_indices)
 count_of_prediction = tf.reduce_sum(prediction_1, axis=1)
 prediction = tf.argmax(count_of_prediction, axis=1)
 
 accuracy = tf.truediv(tf.reduce_sum(tf.cast(tf.equal(prediction, tf.argmax(y_target_test, axis=1)), dtype=tf.int32)), tf.shape(y_target_test)[0])
 
+# 使用线性搜索寻找最优的K
 for k in range(1, 6):
     num_loops = int(np.ceil(test_nums / batch_size))
     total_prediction = []
