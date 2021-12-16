@@ -129,7 +129,7 @@ def get_rand_move(play_moves, rand_transforms=2):
     return board, play_response
 
 # Get list of optimal moves w/ responses
-moves = get_moves_from_csv('base_tic_tac_toe_moves.csv')
+moves = get_moves_from_csv('/home/shiwuwen/workplace/Study/tensorflow/study_tensorflow_cookbook/tensorflow_cookbook/06_Neural_Networks/08_Learning_Tic_Tac_Toe/base_tic_tac_toe_moves.csv')
 
 # Create a train set:
 train_length = 500

@@ -43,7 +43,8 @@ def normalize_cols(m):
     col_max = m.max(axis=0)
     col_min = m.min(axis=0)
     return (m-col_min) / (col_max - col_min)
-    
+
+# np.nan_to_num: 将nan转换为0，将posinf、neginf装换为指定值
 x_vals_train = np.nan_to_num(normalize_cols(x_vals_train))
 x_vals_test = np.nan_to_num(normalize_cols(x_vals_test))
 

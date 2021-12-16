@@ -122,6 +122,9 @@ b3 = init_variable(shape=[1])
 final_output = logistic(logistic_layer2, A3, b3, activation=False)
 
 # Declare loss function (Cross Entropy loss)
+# tf.nn.sigmoid_cross_entropy_with_logits: shape(logits) == shape(labels)
+# 每个类独立但可以不互斥，可以执行多标签分类。例如labels == [1, 1, 0, 0], 4分类且同时输入第0,1类
+# 可以执行多分类，例如 labels == [1, 0, 0, 0]
 loss = tf.reduce_mean(tf.nn.sigmoid_cross_entropy_with_logits(logits=final_output, labels=y_target))
 
 # Declare optimizer
