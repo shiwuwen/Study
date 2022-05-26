@@ -93,6 +93,85 @@ void addPerson(AddressBooks * abs){
     }
 }
 
+
+// 2、显示联系人
+void showPerson(AddressBooks * abs){
+    if(abs->m_Size == 0){
+        cout << "通讯录为空" << endl;
+    }
+    else{
+        for(int i = 0; i < abs->m_Size; i++){
+            cout << "姓名： " << abs->personArray[i].m_Name << "\t";
+            cout << "性别： " << abs->personArray[i].m_Sex << "\t";
+            cout << "年龄： " << abs->personArray[i].m_Age << "\t";
+            cout << "电话： " << abs->personArray[i].m_Phone << "\t";
+            cout << "住址： " << abs->personArray[i].m_Addr << endl;;
+        }
+    }
+}
+
+// 判断联系人是否存在
+int isExist(AddressBooks * abs, string name){
+    for(int i = 0; i < abs->m_Size; i++){
+        if(abs->personArray[i].m_Name == name){
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+
+// 3、删除联系人
+void deletePerson(AddressBooks * abs, string name){
+    int ret = isExist(abs, name);
+
+    if(ret == -1){
+        cout << "查无此人" << endl;
+    }
+    else{
+        abs->personArray[ret].m_Name = abs->personArray[abs->m_Size-1].m_Name;
+        abs->personArray[ret].m_Sex = abs->personArray[abs->m_Size-1].m_Sex;
+        abs->personArray[ret].m_Age = abs->personArray[abs->m_Size-1].m_Age;
+        abs->personArray[ret].m_Phone = abs->personArray[abs->m_Size-1].m_Phone;
+        abs->personArray[ret].m_Addr = abs->personArray[abs->m_Size-1].m_Addr;
+
+        abs->m_Size--;
+
+        cout << "删除成功" << endl;
+    }
+}
+
+
+// 4、查找联系人
+void findPerson(AddressBooks * abs, string name){
+    int ret = isExist(abs, name);
+
+    if(ret == -1){
+        cout << "查无此人" << endl;
+    }
+    else{
+        cout << "姓名： " << abs->personArray[ret].m_Name << "\t";
+        cout << "性别： " << abs->personArray[ret].m_Sex << "\t";
+        cout << "年龄： " << abs->personArray[ret].m_Age << "\t";
+        cout << "电话： " << abs->personArray[ret].m_Phone << "\t";
+        cout << "住址： " << abs->personArray[ret].m_Addr << endl;;
+    }
+}
+
+
+// 5、修改联系人
+void modifyPerson(AddressBooks * abs, string name){
+
+}
+
+
+// 6、清空联系人
+void emptyPerson(AddressBooks * abs){
+    abs->m_Size = 0;
+    cout << "清空成功" << endl;
+}
+
 int main(){
     int select = 0;
 
@@ -109,14 +188,28 @@ int main(){
                 addPerson(&abs);
                 break;
             case 2: // 2、显示联系人
+                showPerson(&abs);
                 break;
             case 3: // 3、删除联系人
+            {
+                cout << "请输入待删除联系人姓名" << endl;
+                string name;
+                cin >> name;
+                deletePerson(&abs, name);
+            }
                 break;
             case 4: // 4、查找联系人
+            {
+                cout << "请输入待查找联系人姓名" << endl;
+                string name;
+                cin >> name;
+                findPerson(&abs, name);
+            }
                 break;
             case 5: // 5、修改联系人
                 break;
             case 6: // 6、清空联系人
+                emptyPerson(&abs);
                 break;
             case 0: // 0、退出系统
                 cout << "欢迎下次使用！" << endl;
